@@ -9,10 +9,10 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-export_file_url = 'https://drive.google.com/uc?export=download&id=1-Mq2yIXQpk9Jd_l0c6v516Yll83SQ2Fd'
-export_file_name = 'export.pkl'
+export_file_url = 'https://drive.google.com/uc?export=download&id=1-2vMyvg8mBOpPAtes3C87IqJJeR3n0WX'
+export_file_name = 'eye_first_714.pkl'
 
-classes = ['oak_wood','pine_wood','rosewood_wood','mahogany_wood','walnut_wood']
+classes = ['Normal', 'Diabetic', 'Glaucoma', 'Cataract', 'AMD', 'Hypertension', 'Myopia','Other_abnormalities']
 path = Path(__file__).parent
 
 app = Starlette()
@@ -60,8 +60,16 @@ async def analyze(request):
     img_data = await request.form()
     img_bytes = await (img_data['file'].read())
     img = open_image(BytesIO(img_bytes))
-    prediction = learn.predict(img)[0]
-    return JSONResponse({'result': str(prediction)})
+    p = learn.predict(img)[2].numpy()
+    idx = []
+    percent = []
+    for i in range(8):
+        if p[i]>0.3:
+            idx.append(i)
+            percent.append(p[i])
+    pred = [str(classes[x])+" "+str(round(percent[x]*100,3)) +str(" % ") for x in range(len(idx))]
+    pred = " : ".join(str(x) for x in pred)
+    return JSONResponse({'result': str(pred)})
 
 
 if __name__ == '__main__':
